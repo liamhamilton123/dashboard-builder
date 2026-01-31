@@ -1,5 +1,5 @@
 import { ColumnType } from '../types/data';
-import type { ColumnDef, RawData, RawDataRow } from '../types/data';
+import type { ColumnDef, RawData } from '../types/data';
 
 export const inferColumnType = (values: unknown[]): ColumnType => {
   const nonNullValues = values.filter(v => v !== null && v !== undefined && v !== '');

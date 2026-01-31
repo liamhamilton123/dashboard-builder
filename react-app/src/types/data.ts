@@ -3,13 +3,15 @@
 export type RawDataRow = Record<string, unknown>;
 export type RawData = RawDataRow[];
 
-export enum ColumnType {
-  STRING = 'string',
-  NUMBER = 'number',
-  DATE = 'date',
-  BOOLEAN = 'boolean',
-  UNKNOWN = 'unknown'
-}
+export const ColumnType = {
+  STRING: 'string',
+  NUMBER: 'number',
+  DATE: 'date',
+  BOOLEAN: 'boolean',
+  UNKNOWN: 'unknown'
+} as const;
+
+export type ColumnType = typeof ColumnType[keyof typeof ColumnType];
 
 export interface FileMetadata {
   fileName: string;
