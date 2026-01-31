@@ -6,6 +6,35 @@ An enterprise dashboard prototyping tool that allows users to upload data (CSV/E
 
 **Core Concept**: A "React app within a React app" - users edit a single component file that gets compiled and rendered in an isolated preview environment.
 
+## MVP Scope & Simplifications
+
+### What's Included in MVP
+✅ **Phase 1**: Data upload (CSV/Excel) with preview
+✅ **Phase 2**: Monaco code editor with live preview
+✅ **Phase 3**: Advanced visualizations (Recharts, dashboard templates)
+✅ **Phase 4**: AI chat interface powered by Claude Agent SDK
+✅ **Phase 4**: Real-time streaming responses from Claude
+✅ **Phase 4**: User's own Claude API key (stored securely)
+✅ **Phase 4**: File synchronization between editor and Claude
+
+### What's NOT Included in MVP (Future Enhancements)
+❌ Rate limiting (rely on Claude API's built-in limits)
+❌ Multiple AI providers (Claude only)
+❌ User analytics/telemetry
+❌ Code version history (beyond Claude's session history)
+❌ Collaborative editing
+❌ Custom theming beyond basic dark/light
+❌ Advanced permissions (using `acceptEdits` mode)
+❌ Production deployment (focus on local development)
+
+### Key Simplifications
+- **Single AI provider**: Claude via Agent SDK (no OpenAI, Gemini, etc.)
+- **No backend rate limiting**: Trust Claude API's limits
+- **No complex permissions**: Auto-approve file edits in MVP
+- **Ephemeral workspaces**: `/tmp` storage, cleaned up after timeout
+- **Simple auth**: Firebase email/password (no OAuth, SSO)
+- **Client-side data processing**: No database for uploaded data
+
 ---
 
 ## Phased Implementation Plan
@@ -35,7 +64,7 @@ An enterprise dashboard prototyping tool that allows users to upload data (CSV/E
 
 ---
 
-### Phase 2: Code Editor & Live Preview (Week 3-4)
+### Phase 2: Code Editor & Live Preview
 
 **Goal**: Enable manual code editing with live preview
 
@@ -51,14 +80,13 @@ An enterprise dashboard prototyping tool that allows users to upload data (CSV/E
 
 ---
 
-### Phase 3: Advanced Visualizations (Week 5-6)
+### Phase 3: Advanced Visualizations
 
 **Goal**: Rich visualization library and tooling
 
-- [ ] Integrate charting libraries (Recharts, D3, or Chart.js)
-- [ ] Pre-build common dashboard patterns
-- [ ] Implement chart type switcher
-- [ ] Add interactive data filtering UI
+- [ ] Integrate charting libraries (Recharts primarily)
+- [ ] Pre-build common dashboard templates for Claude to reference
+- [ ] Add interactive data filtering UI components
 - [ ] Build color theme customizer
 - [ ] Create responsive layout system
 - [ ] Add accessibility features (ARIA labels, keyboard nav)
@@ -67,18 +95,36 @@ An enterprise dashboard prototyping tool that allows users to upload data (CSV/E
 
 ---
 
-### Phase 4: AI-Powered Generation (Week 7-8)
+### Phase 4: AI-Powered Generation
 
 **Goal**: Natural language to code generation
 
-- [ ] Set up LLM integration (Claude API, OpenAI, or local)
-- [ ] Build chat interface for natural language input
-- [ ] Create prompt engineering system for chart generation
+**Backend Setup:**
+- [ ] Set up Node.js/Express backend server
+- [ ] Integrate Claude Agent SDK (`@anthropic-ai/claude-agent-sdk`)
+- [ ] Configure Firebase Admin SDK for user session management
+- [ ] Set up API key storage (Firebase Firestore with encryption)
+- [ ] Create ephemeral file system for user workspaces (`/tmp/sessions/{userId}/{sessionId}`)
+- [ ] Build WebSocket or SSE endpoint for streaming responses
+- [ ] Implement session persistence and resumption
+
+**Frontend Integration:**
+- [ ] Build chat interface UI
+- [ ] Implement streaming response display (real-time text updates)
+- [ ] Add file sync between Monaco editor and backend workspace
+- [ ] Build message history UI
+- [ ] Add loading states and tool execution indicators
 - [ ] Implement code diff viewer for AI suggestions
 - [ ] Add "apply suggestion" and "iterate" functionality
+
+**Agent SDK Features:**
+- [ ] Configure `query()` function with file tools (Read, Edit, Write, Glob, Grep)
+- [ ] Set permission mode to `acceptEdits` for automatic file updates
+- [ ] Enable `includePartialMessages: true` for streaming
+- [ ] Implement session resumption via `resume` parameter
+- [ ] Add file checkpointing for undo/rewind functionality
 - [ ] Build context builder (data schema + user intent)
-- [ ] Add example library for few-shot prompting
-- [ ] Implement streaming responses for better UX
+- [ ] Add dashboard template examples for few-shot prompting
 
 **Key Deliverable**: Users can describe what they want and get generated code
 
@@ -102,7 +148,34 @@ An enterprise dashboard prototyping tool that allows users to upload data (CSV/E
 ## Proposed File Architecture
 
 ```
-react-app/
+project-root/
+├── backend/                        # Node.js backend (NEW)
+│   ├── src/
+│   │   ├── server.ts              # Express server setup
+│   │   ├── middleware/
+│   │   │   ├── auth.ts           # Firebase auth verification
+│   │   │   └── errorHandler.ts   # Global error handling
+│   │   │
+│   │   ├── routes/
+│   │   │   ├── chat.ts           # Claude Agent SDK integration
+│   │   │   ├── files.ts          # File operations (read/write)
+│   │   │   └── sessions.ts       # Session management
+│   │   │
+│   │   ├── services/
+│   │   │   ├── claudeAgent.ts    # Claude Agent SDK wrapper
+│   │   │   ├── sessionManager.ts # User session handling
+│   │   │   ├── workspaceManager.ts # Ephemeral file system per user
+│   │   │   └── firebaseAdmin.ts  # Firebase Admin SDK setup
+│   │   │
+│   │   └── utils/
+│   │       ├── encryption.ts     # API key encryption/decryption
+│   │       └── fileSync.ts       # Sync files between editor and workspace
+│   │
+│   ├── package.json
+│   ├── tsconfig.json
+│   └── .env                       # Backend environment variables
+│
+├── react-app/
 ├── public/
 │   └── sandbox-worker.js          # Web worker for code compilation
 │
@@ -127,22 +200,23 @@ react-app/
 │   │   │   └── DataTransform.tsx # Phase 2 - Filter/sort/aggregate UI
 │   │   │
 │   │   ├── editor/               # Code editing
-│   │   │   ├── CodeEditor.tsx   # Monaco editor wrapper
+│   │   │   ├── CodeEditor.tsx   # Monaco editor wrapper (Phase 2)
 │   │   │   ├── EditorToolbar.tsx
 │   │   │   ├── ErrorDisplay.tsx
 │   │   │   └── QuickActions.tsx # Format, run, save buttons
 │   │   │
 │   │   ├── preview/              # Live preview
-│   │   │   ├── PreviewFrame.tsx # Iframe sandbox
+│   │   │   ├── PreviewFrame.tsx # Iframe sandbox (Phase 2)
 │   │   │   ├── PreviewToolbar.tsx
 │   │   │   ├── DeviceFrame.tsx  # Mobile/tablet/desktop views
 │   │   │   └── ErrorBoundary.tsx
 │   │   │
-│   │   ├── ai/                   # AI features
-│   │   │   ├── ChatPanel.tsx    # Natural language input
-│   │   │   ├── SuggestionCard.tsx
-│   │   │   ├── DiffViewer.tsx   # Show code changes
-│   │   │   └── PromptLibrary.tsx
+│   │   ├── chat/                  # AI Chat Interface (Phase 4)
+│   │   │   ├── ChatPanel.tsx     # Main chat UI with streaming
+│   │   │   ├── ChatMessage.tsx   # Individual message component
+│   │   │   ├── StreamingText.tsx # Real-time text streaming display
+│   │   │   ├── ToolIndicator.tsx # Shows when Claude is using tools
+│   │   │   └── MessageHistory.tsx # Chat history display
 │   │   │
 │   │   └── common/               # Shared components
 │   │       ├── Button.tsx       ✅ # Reusable button with variants
@@ -152,11 +226,12 @@ react-app/
 │   │
 │   ├── services/
 │   │   ├── fileParser.ts        ✅ # CSV/Excel parsing with PapaParse & xlsx
-│   │   ├── codeCompiler.ts       # Babel/Sucrase integration
-│   │   ├── codeRunner.ts         # Execute user code safely
-│   │   ├── llmClient.ts          # LLM API integration
-│   │   ├── templateGenerator.ts  # Code generation from data
-│   │   └── exportService.ts      # PDF/screenshot export, URL sharing
+│   │   ├── codeCompiler.ts       # Babel/Sucrase integration (Phase 2)
+│   │   ├── codeRunner.ts         # Execute user code safely (Phase 2)
+│   │   ├── chatService.ts        # WebSocket/SSE client for Claude Agent SDK backend (Phase 4)
+│   │   ├── fileSync.ts           # Sync files between Monaco and backend (Phase 4)
+│   │   ├── templateGenerator.ts  # Pre-built dashboard templates for Claude (Phase 3)
+│   │   └── exportService.ts      # PDF/screenshot export, URL sharing (Phase 5)
 │   │
 │   ├── templates/                # Starter templates
 │   │   ├── index.ts             # Template registry
@@ -166,10 +241,10 @@ react-app/
 │   │   ├── dataTable.tsx
 │   │   └── dashboard.tsx        # Multi-chart layout
 │   │
-│   ├── prompts/                  # AI prompt engineering
-│   │   ├── systemPrompts.ts     # Base instructions for LLM
-│   │   ├── chartPrompts.ts      # Chart-specific prompts
-│   │   └── dataAnalysis.ts      # Data insight prompts
+│   ├── prompts/                  # System prompts for Claude (Phase 4)
+│   │   ├── systemContext.ts     # Base context about dashboard app
+│   │   ├── chartExamples.ts     # Example dashboard components
+│   │   └── dataContext.ts       # Data schema formatting for prompts
 │   │
 │   ├── context/                  # State management
 │   │   ├── DataContext.tsx      ✅ # Uploaded data with loading/error states
@@ -180,15 +255,17 @@ react-app/
 │   ├── hooks/                    # Custom hooks
 │   │   ├── useFileUpload.ts     ✅ # File validation and parsing hook
 │   │   ├── useCodeCompiler.ts    # Phase 2
-│   │   ├── useLLM.ts             # Phase 4
+│   │   ├── useClaudeChat.ts      # Phase 4 - Manage chat sessions with Claude
+│   │   ├── useStreamingResponse.ts # Phase 4 - Handle SSE/WebSocket streaming
 │   │   ├── useDataTransform.ts   # Phase 2
 │   │   └── useLocalStorage.ts    # Phase 5
 │   │
 │   ├── types/
 │   │   ├── data.ts              ✅ # Data structure types (RawData, ParsedData, ColumnDef, etc.)
 │   │   ├── code.ts               # Phase 2 - Code/AST types
-│   │   ├── template.ts           # Phase 2 - Template types
-│   │   └── llm.ts                # Phase 4 - AI types
+│   │   ├── template.ts           # Phase 3 - Template types
+│   │   ├── chat.ts               # Phase 4 - Chat message types (user, assistant, tool calls)
+│   │   └── stream.ts             # Phase 4 - Streaming event types from Claude SDK
 │   │
 │   └── utils/
 │       ├── dataInference.ts     ✅ # Infer data types/schema with statistics
@@ -205,71 +282,443 @@ react-app/
 
 ## Key Technical Decisions
 
-### 1. **Code Compilation Strategy**
+### 1. **AI Backend Architecture**
+- **Claude Agent SDK** running on Node.js backend
+- User's own Claude API key stored encrypted in Firebase Firestore
+- Ephemeral file system per user session (`/tmp/sessions/{userId}/{sessionId}`)
+- **Permission mode**: `acceptEdits` (auto-approve file changes for MVP)
+- **Tools enabled**: Read, Edit, Write, Glob, Grep (no Bash for security)
+- **Streaming**: `includePartialMessages: true` for real-time responses
+- **Session management**: Resume conversations via session ID
+
+### 2. **Backend-Frontend Communication**
+- **WebSocket** or **Server-Sent Events (SSE)** for streaming
+- Backend-for-Frontend (BFF) pattern to protect API keys
+- File synchronization between Monaco Editor and backend workspace
+- Real-time updates for code changes from Claude
+
+### 3. **Code Editor**
+- **Monaco Editor** (same as VS Code)
+- Configure with TypeScript, JSX syntax highlighting
+- Two-way sync with backend file system
+- Display file changes from Claude in real-time
+
+### 4. **Code Compilation Strategy** (Phase 3)
 - **Option A**: Babel Standalone (browser-based, full featured, ~300KB)
 - **Option B**: Sucrase (lighter, faster, ~100KB)
 - **Recommendation**: Start with Sucrase, fallback to Babel if needed
 
-### 2. **Preview Isolation**
+### 5. **Preview Isolation** (Phase 3)
 - Use iframe with `sandbox` attribute
 - Communication via `postMessage` API
 - Inject data via window object or props
 - Reset iframe on each code change (or implement HMR)
 
-### 3. **State Management**
-- React Context for global state (data, code, settings)
+### 6. **State Management**
+- React Context for global state (data, code, chat sessions)
 - Local state for UI interactions
 - Consider Zustand if Context becomes complex
 
-### 4. **Data Libraries**
-- **CSV/Excel**: PapaParse + xlsx
-- **Charts**: Recharts (React-native, good DX) or Apache ECharts (more features)
-- **Tables**: TanStack Table (powerful, headless)
+### 7. **Data Libraries**
+- **CSV/Excel**: PapaParse + xlsx ✅
+- **Charts**: Recharts (React-native, good DX)
+- **Tables**: TanStack Table (powerful, headless) ✅
 
-### 5. **Editor**
-- Monaco Editor (same as VS Code)
-- Configure with TypeScript, JSX syntax highlighting
-- Add IntelliSense with data types
+---
 
-### 6. **LLM Integration**
-- Support multiple providers (Claude, OpenAI, local)
-- Stream responses for better UX
-- Include data schema in context
-- Use few-shot examples for better output
+## Claude Agent SDK Integration Architecture
+
+### Backend Implementation Pattern
+
+```typescript
+// backend/src/services/claudeAgent.ts
+import { query } from '@anthropic-ai/claude-agent-sdk';
+
+export async function* chatWithClaude(
+  userId: string,
+  sessionId: string,
+  message: string,
+  workspaceFiles: Record<string, string>
+) {
+  // 1. Setup user workspace
+  const workspacePath = `/tmp/sessions/${userId}/${sessionId}`;
+  await setupWorkspace(workspacePath, workspaceFiles);
+
+  // 2. Run Claude Agent SDK with streaming
+  for await (const msg of query({
+    prompt: message,
+    options: {
+      cwd: workspacePath,                    // Claude works in this directory
+      resume: sessionId,                     // Continue previous conversation
+      allowedTools: ["Read", "Edit", "Write", "Glob", "Grep"],
+      disallowedTools: ["Bash"],             // Security: no shell access
+      permissionMode: "acceptEdits",         // Auto-approve file edits
+      includePartialMessages: true,          // Enable streaming
+      additionalDirectories: []              // Only access workspace
+    }
+  })) {
+    // 3. Stream events to frontend
+    if (msg.type === 'stream_event') {
+      yield { type: 'stream', event: msg.event };
+    } else if (msg.type === 'result') {
+      // 4. Return final result with modified files
+      const modifiedFiles = await syncFilesFromWorkspace(workspacePath);
+      yield { type: 'complete', result: msg.result, files: modifiedFiles };
+    }
+  }
+}
+```
+
+### Frontend Communication Pattern
+
+```typescript
+// react-app/src/hooks/useClaudeChat.ts
+export function useClaudeChat(sessionId: string) {
+  const [messages, setMessages] = useState([]);
+  const [streaming, setStreaming] = useState(false);
+
+  async function sendMessage(userMessage: string, editorFiles: Record<string, string>) {
+    setStreaming(true);
+
+    const response = await fetch('/api/chat', {
+      method: 'POST',
+      body: JSON.stringify({ sessionId, message: userMessage, files: editorFiles })
+    });
+
+    const reader = response.body.getReader();
+    const decoder = new TextDecoder();
+    let currentResponse = '';
+
+    while (true) {
+      const { done, value } = await reader.read();
+      if (done) break;
+
+      const text = decoder.decode(value);
+      const events = text.split('\n').filter(Boolean);
+
+      for (const event of events) {
+        const data = JSON.parse(event);
+
+        if (data.type === 'stream') {
+          // Real-time text updates
+          if (data.event.delta?.type === 'text_delta') {
+            currentResponse += data.event.delta.text;
+            setMessages(prev => [...prev.slice(0, -1), { role: 'assistant', content: currentResponse }]);
+          }
+        } else if (data.type === 'complete') {
+          // Final result: update editor files
+          onFilesUpdated(data.files);
+        }
+      }
+    }
+
+    setStreaming(false);
+  }
+
+  return { messages, streaming, sendMessage };
+}
+```
+
+### Permission & Security Model
+
+```typescript
+// For MVP: acceptEdits mode (simple, auto-approve)
+permissionMode: "acceptEdits"
+
+// Future: Custom callbacks for fine-grained control
+canUseTool: async (toolName, input) => {
+  // Validate file access
+  if (toolName === "Read" || toolName === "Edit" || toolName === "Write") {
+    const filePath = input.file_path || input.new_file_path;
+    if (!filePath.startsWith(workspacePath)) {
+      return { behavior: 'deny', message: 'Access denied: outside workspace' };
+    }
+  }
+
+  // Block bash commands
+  if (toolName === "Bash") {
+    return { behavior: 'deny', message: 'Command execution not allowed' };
+  }
+
+  return { behavior: 'allow', updatedInput: input };
+}
+```
+
+### Session Persistence
+
+```typescript
+// Store session metadata in Firebase
+await db.collection('sessions').doc(sessionId).set({
+  userId,
+  createdAt: Timestamp.now(),
+  lastActive: Timestamp.now(),
+  messageCount: 0,
+  files: ['dashboard.tsx', 'utils.ts'],
+  dataSchema: { columns: [...] }
+});
+
+// Resume conversation
+for await (const msg of query({
+  prompt: "Add error handling",
+  options: {
+    resume: sessionId  // Claude remembers entire conversation history!
+  }
+})) {
+  // Continue previous conversation with full context
+}
+```
+
+### File Checkpointing (Undo/Rewind)
+
+```typescript
+// Enable checkpointing
+const result = await query({
+  prompt: "Refactor the dashboard component",
+  options: {
+    enableFileCheckpointing: true,
+    cwd: workspacePath
+  }
+});
+
+// User doesn't like changes - rewind to previous state
+await result.rewindFiles(previousMessageUUID);
+// All file changes reverted!
+```
+
+---
+
+## Backend API Endpoints
+
+### Authentication (All endpoints require Firebase ID token)
+```typescript
+// Middleware verifies token on every request
+headers: {
+  'Authorization': 'Bearer <firebase-id-token>'
+}
+```
+
+### POST /api/auth/setup-api-key
+Store user's Claude API key (encrypted)
+
+**Request:**
+```json
+{
+  "apiKey": "sk-ant-..."
+}
+```
+
+**Response:**
+```json
+{
+  "success": true,
+  "message": "API key stored securely"
+}
+```
+
+### WebSocket /ws/chat
+Real-time chat with Claude Agent SDK
+
+**Client → Server (Initial Connection):**
+```json
+{
+  "type": "init",
+  "sessionId": "uuid-v4",
+  "files": {
+    "dashboard.tsx": "import React...",
+    "utils.ts": "export function..."
+  }
+}
+```
+
+**Client → Server (Chat Message):**
+```json
+{
+  "type": "message",
+  "sessionId": "uuid-v4",
+  "content": "Add a bar chart showing sales by month",
+  "files": {
+    "dashboard.tsx": "current code..."
+  }
+}
+```
+
+**Server → Client (Streaming Events):**
+```json
+// Text delta (real-time)
+{
+  "type": "stream",
+  "event": {
+    "type": "content_block_delta",
+    "delta": {
+      "type": "text_delta",
+      "text": "I'll add a bar chart..."
+    }
+  }
+}
+
+// Tool use indicator
+{
+  "type": "tool_start",
+  "toolName": "Edit",
+  "input": {
+    "file_path": "dashboard.tsx"
+  }
+}
+
+// Tool result
+{
+  "type": "tool_result",
+  "toolName": "Edit",
+  "result": "File updated successfully"
+}
+
+// Complete (final)
+{
+  "type": "complete",
+  "result": {
+    "content": "I've added a bar chart...",
+    "files": {
+      "dashboard.tsx": "updated code..."
+    },
+    "sessionId": "uuid-v4",
+    "cost": 0.023
+  }
+}
+
+// Error
+{
+  "type": "error",
+  "message": "Error message",
+  "code": "TOOL_ERROR"
+}
+```
+
+### POST /api/sessions/list
+Get user's recent sessions
+
+**Response:**
+```json
+{
+  "sessions": [
+    {
+      "sessionId": "uuid-v4",
+      "createdAt": "2026-01-31T10:00:00Z",
+      "lastActive": "2026-01-31T10:30:00Z",
+      "messageCount": 5,
+      "files": ["dashboard.tsx", "utils.ts"]
+    }
+  ]
+}
+```
+
+### POST /api/sessions/{sessionId}/files
+Get files from a session workspace
+
+**Response:**
+```json
+{
+  "files": {
+    "dashboard.tsx": "import React...",
+    "utils.ts": "export function..."
+  }
+}
+```
+
+### DELETE /api/sessions/{sessionId}
+Delete a session and cleanup workspace
+
+**Response:**
+```json
+{
+  "success": true,
+  "message": "Session deleted"
+}
+```
 
 ---
 
 ## Data Flow
 
 ```
-1. Upload File
+1. Upload File (CSV/Excel)
    ↓
-2. Parse & Infer Schema → Store in DataContext
+2. Parse & Infer Schema → Store in DataContext ✅
    ↓
-3a. User writes code manually (CodeEditor)
-   OR
-3b. User describes intent (ChatPanel) → LLM generates code
+3. User sends natural language request in ChatPanel
    ↓
-4. Code compiled (Babel/Sucrase)
+4. Frontend → WebSocket/SSE → Backend
    ↓
-5. Injected into Preview iframe with data
+5. Backend creates/resumes session
+   - Sync current files from Monaco to workspace
+   - Initialize Claude Agent SDK with query()
    ↓
-6. User sees rendered dashboard
+6. Claude Agent SDK processes request
+   - Uses Read/Edit/Write tools on workspace files
+   - Streams responses back to frontend
    ↓
-7. Iterate (edit code or refine with AI)
+7. Frontend receives streaming updates
+   - Display Claude's text responses in chat
+   - Show tool usage indicators (e.g., "Editing dashboard.tsx...")
+   - Sync file changes back to Monaco Editor
    ↓
-8. Export final result
+8. Code compiled in browser (Babel/Sucrase) [Phase 3]
+   ↓
+9. Injected into Preview iframe with data [Phase 3]
+   ↓
+10. User sees rendered dashboard
+   ↓
+11. Iterate (continue conversation, refine with Claude)
+   ↓
+12. Export final result [Phase 5]
 ```
 
 ---
 
 ## Security Considerations
 
-1. **Code Sandbox**: Use iframe with restricted permissions
-2. **Data Privacy**: Process data client-side only (no server uploads)
-3. **LLM Prompts**: Sanitize user input before sending to LLM
-4. **Code Validation**: Lint and validate before execution
-5. **XSS Prevention**: Sanitize any user-generated HTML
+### 1. **API Key Management** (Critical for MVP)
+- **NEVER** expose Claude API keys to frontend
+- Store user's API key **encrypted** in Firebase Firestore
+- Use Firebase Admin SDK on backend to decrypt and use keys
+- Set API key as environment variable only for duration of request
+- Clear API key from memory after each request
+
+### 2. **File System Isolation**
+- Each user gets ephemeral workspace: `/tmp/sessions/{userId}/{sessionId}`
+- Claude Agent SDK restricted to user's workspace only
+- No access to system files or other users' data
+- Workspace cleaned up after session timeout
+
+### 3. **Tool Restrictions**
+- **Allowed tools**: Read, Edit, Write, Glob, Grep (file operations only)
+- **Disallowed tools**: Bash (prevent arbitrary command execution)
+- Use `permissionMode: "acceptEdits"` for MVP (auto-approve file edits)
+- Consider custom `canUseTool` callbacks for stricter control later
+
+### 4. **Code Sandbox** (Phase 3)
+- Use iframe with `sandbox` attribute for preview
+- Communication via `postMessage` API
+- Inject data via window object (not eval)
+
+### 5. **Data Privacy**
+- Process uploaded data client-side only (no server uploads to backend)
+- Data only sent to Claude API via user's own API key
+- No data persistence on backend (only in browser memory)
+
+### 6. **Authentication**
+- Firebase Authentication for user sessions
+- Verify Firebase ID tokens on backend for all API requests
+- Rate limiting per user (future enhancement, not MVP)
+
+### 7. **Input Validation**
+- Sanitize user messages before sending to Claude
+- Validate file paths to prevent directory traversal
+- Lint and validate generated code before execution
+
+### 8. **XSS Prevention**
+- Sanitize any user-generated HTML in preview
+- Use React's built-in XSS protection
+- CSP headers for iframe sandbox
 
 ---
 
@@ -285,41 +734,115 @@ react-app/
 
 ## Success Metrics
 
-- Time from upload to first visualization: < 30 seconds
+### Phase 1 (Data Upload) ✅
+- File upload and parsing: < 3 seconds
+- Data table rendering: < 1 second
+- Type inference accuracy: > 95%
+
+### Phase 2 (Code Editor & Live Preview)
 - Code editor lag: < 100ms
-- Preview update latency: < 500ms
-- AI generation success rate: > 80%
-- User satisfaction with generated code: High
+- Preview update latency after code change: < 500ms
+- Code compilation time: < 1 second
+
+### Phase 3 (Visualizations)
+- Chart rendering time: < 500ms
+- Template variety: 5+ dashboard patterns
+
+### Phase 4 (AI-Powered Generation)
+- Time from chat message to first response: < 2 seconds
+- Streaming text latency: < 200ms per chunk
+- File sync to editor: < 500ms
+- Session resumption: < 1 second
+- Dashboard generation success rate: > 80%
+- Time from prompt to working dashboard: < 30 seconds
+
+### Overall
+- User satisfaction with AI-generated code: High
+- System uptime: > 99%
+- API cost per session: < $0.50 (user's own key)
 
 ---
 
 ## Next Steps
 
-1. Review and approve this architecture
-2. Set up dependencies (see package recommendations below)
-3. Implement Phase 1 (Foundation & Data Pipeline)
-4. Build vertical slice (upload → manual edit → preview)
-5. Iterate based on feedback
+### Immediate (Phase 2 Setup)
+1. Review and approve updated architecture ✓
+2. Set up Phase 2 dependencies
+   - Install Monaco Editor (`@monaco-editor/react`)
+   - Install Babel standalone or Sucrase
+3. Implement Monaco Editor integration
+   - Add Monaco component to Editor page
+   - Implement file state management
+   - Add TypeScript/JSX syntax highlighting
+4. Build live preview system
+   - Create iframe-based preview sandbox
+   - Implement code compilation pipeline
+   - Add hot reload on code changes
+   - Build error boundary and display
+
+### Phase 2 Vertical Slice
+Upload data → Edit code manually in Monaco → See live preview in iframe
+
+### Phase 3: Advanced Visualizations
+- Integrate Recharts
+- Build dashboard component templates
+- Add data filtering UI
+
+### Phase 4: AI Integration
+- Set up backend (Node.js/Express)
+- Integrate Claude Agent SDK
+- Configure Firebase
+- Build chat interface
+- Implement streaming responses
+
+### Phase 5: Export & Sharing
 
 ---
 
 ## Recommended Dependencies
 
+### Frontend (react-app/)
 ```json
 {
   "dependencies": {
+    "react": "^19.x",
+    "react-dom": "^19.x",
     "react-router-dom": "^7.x",
-    "papaparse": "^5.x",          // CSV parsing
-    "xlsx": "^0.18.x",            // Excel parsing
-    "@monaco-editor/react": "^4.x", // Code editor
-    "recharts": "^2.x",           // Charts
-    "@tanstack/react-table": "^8.x", // Data tables
-    "sucrase": "^3.x",            // Code compilation
-    "zustand": "^5.x",            // State (if needed)
-    "react-dropzone": "^14.x"     // File upload
+    "papaparse": "^5.x",            // CSV parsing ✅
+    "xlsx": "^0.18.x",              // Excel parsing ✅
+    "@monaco-editor/react": "^4.x", // Code editor (Phase 2)
+    "recharts": "^2.x",             // Charts (Phase 4)
+    "@tanstack/react-table": "^8.x", // Data tables ✅
+    "sucrase": "^3.x",              // Code compilation (Phase 3)
+    "react-dropzone": "^14.x",      // File upload ✅
+    "firebase": "^11.x"             // Firebase client SDK (Phase 2)
   },
   "devDependencies": {
-    "@types/papaparse": "^5.x"
+    "@types/papaparse": "^5.x",
+    "typescript": "^5.x",
+    "vite": "^7.x"
+  }
+}
+```
+
+### Backend (backend/)
+```json
+{
+  "dependencies": {
+    "@anthropic-ai/claude-agent-sdk": "latest", // Claude Agent SDK (Phase 2)
+    "express": "^4.x",                          // Web server (Phase 2)
+    "firebase-admin": "^13.x",                  // Firebase Admin SDK (Phase 2)
+    "ws": "^8.x",                               // WebSocket server (Phase 2)
+    "cors": "^2.x",                             // CORS middleware (Phase 2)
+    "dotenv": "^16.x"                           // Environment variables (Phase 2)
+  },
+  "devDependencies": {
+    "@types/express": "^4.x",
+    "@types/ws": "^8.x",
+    "@types/cors": "^2.x",
+    "typescript": "^5.x",
+    "tsx": "^4.x",                              // TypeScript execution
+    "nodemon": "^3.x"                           // Development auto-reload
   }
 }
 ```
@@ -328,14 +851,94 @@ react-app/
 
 ## Architectural Decisions
 
-1. **LLM Provider**: API-based (Claude/OpenAI) - configure via environment variables
-2. **Data Limits**:
-   - Max file size: **10MB** (prevents browser memory issues)
-   - Max row count: **50,000 rows** (optimal for client-side processing and visualizations)
-   - Max column count: **100 columns** (reasonable limit for dashboard use cases)
-3. **Persistence**: LocalStorage (no backend needed initially)
-4. **Auth**: Not implemented yet (Phase 5+ feature)
-5. **Multi-file**: Single component file only (simpler UX, easier sandboxing)
+### 1. **AI Provider**
+- **Claude API only** via Claude Agent SDK
+- User provides their own API key (stored encrypted in Firebase)
+- No rate limiting for MVP (rely on Claude API's built-in limits)
+- No fallback to other AI providers (simplifies MVP)
+
+### 2. **Backend Architecture**
+- **Node.js/Express** server with TypeScript
+- **Claude Agent SDK** running server-side (cannot run in browser)
+- **WebSocket** or **SSE** for real-time streaming
+- **Firebase Admin SDK** for authentication and API key storage
+- **Ephemeral file system**: `/tmp/sessions/{userId}/{sessionId}` (auto-cleanup)
+
+### 3. **Data Limits**
+- Max file size: **10MB** (prevents browser memory issues)
+- Max row count: **50,000 rows** (optimal for client-side processing and visualizations)
+- Max column count: **100 columns** (reasonable limit for dashboard use cases)
+
+### 4. **Session Management**
+- **Firebase Firestore** for session metadata (session ID, timestamps, file list)
+- **Claude Agent SDK sessions** for conversation continuity
+- Session resumption via `resume` parameter in `query()` function
+- File checkpointing for undo/rewind functionality
+
+### 5. **Authentication**
+- **Firebase Authentication** for user sign-in
+- Verify ID tokens on backend for all API requests
+- User must be authenticated to use chat (to associate with their API key)
+
+### 6. **Multi-file Support**
+- Start with single component file (simpler UX)
+- Claude can create multiple files via Write tool if needed
+- All files managed in user's workspace directory
+
+### 7. **Deployment** (Future)
+- Backend: Cloud Run, Railway, or Render
+- Frontend: Vercel, Netlify, or Firebase Hosting
+- Separate deployments for frontend and backend
+
+## Environment Variables & Configuration
+
+### Backend (.env)
+```bash
+# Claude API (not used directly - users provide their own keys)
+# ANTHROPIC_API_KEY is set per-request from user's encrypted key
+
+# Firebase Admin SDK
+FIREBASE_PROJECT_ID=your-project-id
+FIREBASE_CLIENT_EMAIL=your-service-account@...
+FIREBASE_PRIVATE_KEY="-----BEGIN PRIVATE KEY-----\n..."
+
+# Server Configuration
+PORT=3000
+NODE_ENV=development
+CORS_ORIGIN=http://localhost:2500
+
+# Encryption (for API key storage)
+ENCRYPTION_KEY=your-32-byte-encryption-key
+ENCRYPTION_IV=your-16-byte-iv
+
+# Session Configuration
+SESSION_TIMEOUT_MINUTES=60
+WORKSPACE_CLEANUP_HOURS=24
+```
+
+### Frontend (.env)
+```bash
+# Firebase Client SDK
+VITE_FIREBASE_API_KEY=your-firebase-api-key
+VITE_FIREBASE_AUTH_DOMAIN=your-project.firebaseapp.com
+VITE_FIREBASE_PROJECT_ID=your-project-id
+VITE_FIREBASE_STORAGE_BUCKET=your-project.appspot.com
+VITE_FIREBASE_MESSAGING_SENDER_ID=123456789
+VITE_FIREBASE_APP_ID=1:123456789:web:abc123
+
+# Backend API
+VITE_BACKEND_URL=http://localhost:3000
+VITE_BACKEND_WS_URL=ws://localhost:3000
+```
+
+### Security Notes
+- **Never commit .env files** to version control
+- Use `.env.example` files with placeholder values
+- Rotate encryption keys regularly
+- Use Firebase Secret Manager in production
+- API keys stored encrypted at rest in Firestore
+
+---
 
 ## Data Limits Rationale
 
