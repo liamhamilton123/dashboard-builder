@@ -49,8 +49,6 @@ export function generatePreviewHTML(compiledCode: string, data: ParsedData): str
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Dashboard Preview</title>
-  <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
-  <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
   <script src="https://cdn.tailwindcss.com"></script>
   <style>
     body {
@@ -61,16 +59,24 @@ export function generatePreviewHTML(compiledCode: string, data: ParsedData): str
 </head>
 <body>
   <div id="root"></div>
-  <script>
-    // Wait for React to load
-    (function() {
-      if (typeof window.React === 'undefined' || typeof window.ReactDOM === 'undefined') {
-        setTimeout(arguments.callee, 50);
-        return;
-      }
+  <script type="module">
+    // Import dependencies from esm.sh
+    const ReactModule = await import("https://esm.sh/react@18?target=es2022");
+    const ReactDOMModule = await import("https://esm.sh/react-dom@18?target=es2022&deps=react@18");
+    const Recharts = await import("https://esm.sh/recharts@2?target=es2022&deps=react@18,react-dom@18");
 
-      const React = window.React;
-      const ReactDOM = window.ReactDOM;
+    // Set globals for compiled code - use the actual exports
+    window.React = ReactModule.default || ReactModule;
+    window.ReactDOM = ReactDOMModule.default || ReactDOMModule;
+
+    // Create a local reference to the React we'll use
+    const React = window.React;
+    const ReactDOM = window.ReactDOM;
+
+    const {
+      BarChart, Bar, LineChart, Line, PieChart, Pie, AreaChart, Area,
+      XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, Cell
+    } = Recharts;
 
     // Error boundary
     class ErrorBoundary extends React.Component {
@@ -152,7 +158,6 @@ export function generatePreviewHTML(compiledCode: string, data: ParsedData): str
         '<pre style="white-space: pre-wrap; font-size: 14px;">' + error.message + '</pre>' +
         '</div>';
     }
-    })();
   </script>
 </body>
 </html>`;

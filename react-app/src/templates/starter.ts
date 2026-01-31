@@ -6,6 +6,16 @@ interface DashboardProps {
 }
 
 const Dashboard: React.FC<DashboardProps> = ({ data, columns }) => {
+  // Sample data for demonstration
+  const sampleData = [
+    { month: 'Jan', sales: 4000, revenue: 2400 },
+    { month: 'Feb', sales: 3000, revenue: 1398 },
+    { month: 'Mar', sales: 2000, revenue: 9800 },
+    { month: 'Apr', sales: 2780, revenue: 3908 },
+    { month: 'May', sales: 1890, revenue: 4800 },
+    { month: 'Jun', sales: 2390, revenue: 3800 },
+  ];
+
   return (
     <div className="min-h-screen bg-gray-50 p-8">
       <div className="max-w-7xl mx-auto">
@@ -13,63 +23,75 @@ const Dashboard: React.FC<DashboardProps> = ({ data, columns }) => {
           Dashboard Preview
         </h1>
 
-        {/* Data Summary */}
+        {/* Sample Chart */}
         <div className="bg-white rounded-lg shadow p-6 mb-6">
           <h2 className="text-xl font-semibold text-gray-800 mb-4">
-            Data Summary
+            Sales Overview
           </h2>
-          <div className="grid grid-cols-2 gap-4">
-            <div className="bg-blue-50 p-4 rounded">
-              <p className="text-sm text-gray-600">Total Rows</p>
-              <p className="text-2xl font-bold text-blue-600">{data.length}</p>
-            </div>
-            <div className="bg-green-50 p-4 rounded">
-              <p className="text-sm text-gray-600">Total Columns</p>
-              <p className="text-2xl font-bold text-green-600">{columns.length}</p>
-            </div>
+          <ResponsiveContainer width="100%" height={300}>
+            <BarChart data={sampleData}>
+              <CartesianGrid strokeDasharray="3 3" />
+              <XAxis dataKey="month" />
+              <YAxis />
+              <Tooltip />
+              <Legend />
+              <Bar dataKey="sales" fill="#3b82f6" name="Sales" />
+              <Bar dataKey="revenue" fill="#10b981" name="Revenue" />
+            </BarChart>
+          </ResponsiveContainer>
+        </div>
+
+        {/* Metrics Grid */}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
+          <div className="bg-white rounded-lg shadow p-6">
+            <p className="text-sm text-gray-600 mb-2">Total Sales</p>
+            <p className="text-3xl font-bold text-blue-600">16,060</p>
+            <p className="text-sm text-green-600 mt-2">+12.5% from last period</p>
+          </div>
+          <div className="bg-white rounded-lg shadow p-6">
+            <p className="text-sm text-gray-600 mb-2">Total Revenue</p>
+            <p className="text-3xl font-bold text-green-600">26,106</p>
+            <p className="text-sm text-green-600 mt-2">+8.3% from last period</p>
+          </div>
+          <div className="bg-white rounded-lg shadow p-6">
+            <p className="text-sm text-gray-600 mb-2">Avg per Month</p>
+            <p className="text-3xl font-bold text-purple-600">2,677</p>
+            <p className="text-sm text-gray-500 mt-2">Across 6 months</p>
           </div>
         </div>
 
         {/* Sample Data Table */}
         <div className="bg-white rounded-lg shadow p-6 mb-6">
           <h2 className="text-xl font-semibold text-gray-800 mb-4">
-            Sample Data (First 10 Rows)
+            Monthly Breakdown
           </h2>
           <div className="overflow-x-auto">
             <table className="min-w-full divide-y divide-gray-200">
               <thead className="bg-gray-50">
                 <tr>
-                  {columns.slice(0, 5).map((col, idx) => (
-                    <th
-                      key={idx}
-                      className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
-                    >
-                      {col}
-                    </th>
-                  ))}
-                  {columns.length > 5 && (
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      ... {columns.length - 5} more
-                    </th>
-                  )}
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    Month
+                  </th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    Sales
+                  </th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    Revenue
+                  </th>
                 </tr>
               </thead>
               <tbody className="bg-white divide-y divide-gray-200">
-                {data.slice(0, 10).map((row, rowIdx) => (
-                  <tr key={rowIdx}>
-                    {columns.slice(0, 5).map((col, colIdx) => (
-                      <td
-                        key={colIdx}
-                        className="px-6 py-4 whitespace-nowrap text-sm text-gray-900"
-                      >
-                        {row[col]?.toString() || '-'}
-                      </td>
-                    ))}
-                    {columns.length > 5 && (
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-400">
-                        ...
-                      </td>
-                    )}
+                {sampleData.map((row, idx) => (
+                  <tr key={idx}>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                      {row.month}
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                      {row.sales.toLocaleString()}
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                      {row.revenue.toLocaleString()}
+                    </td>
                   </tr>
                 ))}
               </tbody>
@@ -87,7 +109,7 @@ const Dashboard: React.FC<DashboardProps> = ({ data, columns }) => {
             </div>
             <div className="ml-3">
               <p className="text-sm text-blue-700">
-                <strong>Tip:</strong> Your data is available via the <code className="bg-blue-100 px-1 rounded">data</code> and <code className="bg-blue-100 px-1 rounded">columns</code> props. Edit this component to build your custom dashboard!
+                <strong>Tip:</strong> This is a sample dashboard. Edit this component to build your custom dashboard! Your uploaded data is available via the <code className="bg-blue-100 px-1 rounded">data</code> and <code className="bg-blue-100 px-1 rounded">columns</code> props.
               </p>
             </div>
           </div>
