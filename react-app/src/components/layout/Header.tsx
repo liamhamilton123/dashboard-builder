@@ -8,7 +8,7 @@ export const Header: React.FC = () => {
         <div className="flex justify-between items-center h-16">
           <div className="flex items-center">
             <Link to="/" className="text-xl font-bold text-gray-900">
-              Dashboard Builder
+              Aperture
             </Link>
           </div>
           <nav className="flex gap-6">
