@@ -968,7 +968,7 @@ FIREBASE_CLIENT_EMAIL=your-service-account@...
 FIREBASE_PRIVATE_KEY="-----BEGIN PRIVATE KEY-----\n..."
 
 # Server Configuration
-PORT=3000
+PORT=2000
 NODE_ENV=development
 CORS_ORIGIN=http://localhost:2500
 
@@ -992,8 +992,8 @@ VITE_FIREBASE_MESSAGING_SENDER_ID=123456789
 VITE_FIREBASE_APP_ID=1:123456789:web:abc123
 
 # Backend API
-VITE_BACKEND_URL=http://localhost:3000
-VITE_BACKEND_WS_URL=ws://localhost:3000
+VITE_BACKEND_URL=http://localhost:2000
+VITE_BACKEND_WS_URL=ws://localhost:2000
 ```
 
 ### Security Notes

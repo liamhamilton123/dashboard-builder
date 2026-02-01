@@ -35,7 +35,7 @@ The absolute minimum to get started:
 
 2. **Create `.env`**:
    ```bash
-   PORT=3000
+   PORT=2000
    ANTHROPIC_API_KEY=sk-ant-your-key-here
    CORS_ORIGIN=http://localhost:2500
    ```
@@ -48,7 +48,7 @@ The absolute minimum to get started:
 
 4. **Start server**: `npm run dev`
 
-5. **Connect frontend** via WebSocket to `ws://localhost:3000/ws/chat`
+5. **Connect frontend** via WebSocket to `ws://localhost:2000/ws/chat`
 
 That's it! Follow the detailed phases below for full implementation.
 
@@ -101,14 +101,14 @@ That's it! Follow the detailed phases below for full implementation.
    - [ ] Add JSON body parser middleware
    - [ ] Create health check endpoint: `GET /health`
    - [ ] Add basic error handling middleware
-   - [ ] Test server starts on port 3000
+   - [ ] Test server starts on port 2000
 
 3. **Environment Configuration**
    - [ ] Create `.env.example` with required variables
    - [ ] Create `.env` (gitignored) with actual values
    - [ ] Create `src/config/env.ts` to load and validate environment variables
    - [ ] Add variables:
-     - `PORT=3000`
+     - `PORT=2000`
      - `NODE_ENV=development`
      - `CORS_ORIGIN=http://localhost:2500`
      - `ANTHROPIC_API_KEY=sk-ant-...` (your Claude API key)
@@ -498,7 +498,7 @@ backend/
 
 ```bash
 # Server Configuration
-PORT=3000
+PORT=2000
 NODE_ENV=development
 CORS_ORIGIN=http://localhost:2500
 
